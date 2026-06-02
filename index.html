@@ -174,6 +174,7 @@ window.addEventListener('resize',resize);
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 const perf={quality:1,dprCap:1.75,starCount:70,rainCount:48,gasCount:8,layerSkip:1,particleCap:220,trailCap:12,fx:1};
+let bgPhase=0;
 function updateUiScale(){
   const widthScale=W/460;
   const heightScale=H/818;
@@ -733,6 +734,7 @@ function drawHero(wx,wy,face){
 }
 
 function draw(){
+  bgPhase=(frame>>1)%3;
   ctx.clearRect(0,0,W,H);
   ctx.save();
   ctx.translate(0,-camY);
@@ -811,7 +813,7 @@ function draw(){
       ctx.restore();
     }
   }
-  ascentShaft();
+  if(bgPhase===0) ascentShaft();
 
   function sideMachinery(){
     const par=0.68, period=300, scroll=camY*par;
@@ -841,7 +843,7 @@ function draw(){
       }
     }
   }
-  sideMachinery();
+  if(bgPhase===0) sideMachinery();
 
   function holoPanels(){
     const par=0.5, period=460, scroll=camY*par;
@@ -861,7 +863,7 @@ function draw(){
       ctx.restore();
     }
   }
-  holoPanels();
+  if(bgPhase===1) holoPanels();
 
   function dataRain(){
     ctx.save();
@@ -875,7 +877,7 @@ function draw(){
     }
     ctx.restore();
   }
-  dataRain();
+  if(bgPhase===2) dataRain();
 
   function mapFeatureLayer(){
     const par=0.58, period=380, scroll=camY*par;
@@ -898,7 +900,7 @@ function draw(){
       ctx.restore();
     }
   }
-  mapFeatureLayer();
+  if(bgPhase===1) mapFeatureLayer();
 
   // starting platform (a scrap-metal ledge in the landfill)
   if(platform.y < camY+H+40){
@@ -1023,28 +1025,6 @@ function draw(){
   }
   ctx.stroke();
 
-  // rising gas layer from below
-  ctx.save();
-  ctx.globalAlpha=0.45;
-  ctx.fillStyle='rgba(120,200,60,0.16)';
-  ctx.fillRect(0,H*0.68,W,H*0.32);
-  ctx.fillStyle='rgba(120,200,60,0.28)';
-  for(let i=0;i<perf.gasCount;i++){
-    const gx=(frame*1.7+i*61)% (W+80) - 40;
-    const gy=H*0.74 + Math.sin(frame*0.05+i)*14;
-    ctx.fillRect(gx,gy,90,26);
-  }
-  ctx.strokeStyle='rgba(180,255,90,0.45)';
-  ctx.lineWidth=2;
-  for(let i=0;i<6;i++){
-    const yy=H*0.72 + i*16 + Math.sin(frame*0.04+i)*4;
-    ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(W,yy); ctx.stroke();
-  }
-  ctx.fillStyle='rgba(180,255,90,0.9)';
-  ctx.font='700 11px Syne, sans-serif';
-  ctx.textAlign='right';
-  ctx.fillText('GAS',W-12,H*0.72-8);
-  ctx.restore();
 
   ctx.restore();
 
