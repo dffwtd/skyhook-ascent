@@ -296,6 +296,7 @@ function playWastedSting(){
   mk(212,52,1.05,'triangle',0.08,0.02);
 }
 
+const SPEED=0.68;
 const GRAV=0.34;
 let state='start';
 let best=Number(lsGet('skyhook_best')||0);
@@ -451,7 +452,7 @@ function makeHazard(){
     ? (side ? 10+Math.random()*46 : W-60-Math.random()*46)
     : (W*(0.22+Math.random()*0.56) + (Math.random()*36-18));
   const y=camY - 62 - Math.random()*190;
-  const vx=(Math.random()<0.5?-1:1)*(0.95+difficulty*1.65+Math.random()*0.45);
+  const vx=(Math.random()<0.5?-1:1)*(0.95+difficulty*1.65+Math.random()*0.45)*SPEED;
   return {type:'tnt',x,y,w:size,h:size,vx,phase:Math.random()*Math.PI*2,fuse:Math.random(),tilt:(Math.random()*0.16-0.08),bob:Math.random()*Math.PI*2,spark:Math.random()*Math.PI*2};
 }
 
@@ -473,7 +474,7 @@ function hitHazard(h){
   player.vx*=0.02; player.vy*=0.02;
   player.vx += (Math.random()*12-6);
   player.vy += (Math.random()*10-5);
-  camY -= 12;
+  camY -= 12*SPEED;
   deathTimer=72;
 }
 
@@ -571,7 +572,7 @@ function update(){
         const gravityTangential=GRAV*Math.cos(rope.angle)/rope.len;
         const turnBoost=1+rope.turns*0.10;
         const targetOmega=rope.spin*((12.4*turnBoost + rope.turns*0.28 + rope.prevSpeed*0.03))/rope.len;
-        rope.omega += (targetOmega-rope.omega)*0.15 + gravityTangential*0.50;
+        rope.omega += ((targetOmega-rope.omega)*0.15 + gravityTangential*0.50)*SPEED;
         const maxOmega=((15.6 + rope.turns*0.42 + rope.prevSpeed*0.02))/rope.len;
         rope.omega=Math.max(-maxOmega,Math.min(maxOmega,rope.omega));
 
@@ -582,7 +583,7 @@ function update(){
         const stretch=((rope.turns*rope.turns*44) + (rope.turns*92) + (speed-4.5)*2.8 + speedGain*3.2);
         const targetLen=rope.baseLen + Math.max(0,stretch);
         rope.len += (targetLen-rope.len)*0.18;
-        rope.angle += rope.omega;
+        rope.angle += rope.omega*SPEED;
 
         const tx=-Math.sin(rope.angle), ty=Math.cos(rope.angle);
         const tangentSpeed=rope.omega*rope.len;
@@ -606,8 +607,8 @@ function update(){
           player.vy*=0.35;
         }
       } else {
-        player.vy+=GRAV;
-        player.x+=player.vx; player.y+=player.vy;
+        player.vy+=GRAV*SPEED;
+        player.x+=player.vx*SPEED; player.y+=player.vy*SPEED;
         player.vx*=0.99; player.vy*=0.995;
       }
     }
@@ -635,7 +636,7 @@ function update(){
 
     // camera tracks upward only
     const targetCam=player.y - H*0.55;
-    if(targetCam<camY) camY += (targetCam-camY)*0.12;
+    if(targetCam<camY) camY += (targetCam-camY)*0.12*SPEED;
 
     if(player.y<topMost) topMost=player.y;
     altitude=Math.max(0,Math.floor(-topMost/12));
@@ -654,7 +655,7 @@ function update(){
     for(const h of hazards){
       if(h.vx){
         const wobble=Math.sin(frame*0.07+h.phase)*0.72;
-        h.x+=h.vx+wobble;
+        h.x+=(h.vx+wobble)*SPEED;
         if(h.x<8||h.x>W-8-h.w)h.vx*=-1;
       }
     }
@@ -664,9 +665,9 @@ function update(){
     // death: touch the rising fog, or collide with a hazard.
     if(deathTimer>0){
       deathTimer--;
-      camY -= Math.sin(deathTimer*1.35)*7.8;
-      camY += (Math.random()*18-9);
-      if(deathTimer%2===0) camY += Math.sin(frame*2.4)*4.5;
+      camY -= Math.sin(deathTimer*1.35)*7.8*SPEED;
+      camY += (Math.random()*18-9)*SPEED;
+      if(deathTimer%2===0) camY += Math.sin(frame*2.4)*4.5*SPEED;
       if(deathTimer===0) gameOver();
     }
     else if(started && player.y > fogLineY()){ gameOver(); }
